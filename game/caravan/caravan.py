@@ -1,14 +1,19 @@
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from game.caravan.enums import Direction
+from game.caravan.enums import Direction, CaravanId
 from game.cards.card import Card, PlayedCard
 from game.cards.enums import Suit, Rank
 
 
 @dataclass
 class Caravan:
+    id: CaravanId
     pile: list[PlayedCard] = field(default_factory=list)
+
+    @property
+    def top_card(self) -> PlayedCard | None:
+        return self.pile[-1] if len(self.pile) > 0 else None
 
     @property
     def direction(self) -> Direction:
@@ -16,7 +21,10 @@ class Caravan:
         if len(self.pile) < 2:
             return Direction.UNSET
 
-        ultimate_card = self.pile[-1]
+        ultimate_card = self.top_card
+
+        if ultimate_card is None:
+            return Direction.UNSET
 
         ultimate_card_value = ultimate_card.base_card.base_value
         penultimate_card_value = self.pile[-2].base_card.base_value
@@ -40,7 +48,7 @@ class Caravan:
         if not self.pile:
             return None
 
-        ultimate_card = self.pile[-1]
+        ultimate_card = self.top_card
 
         return ultimate_card.last_queen_suit or ultimate_card.base_card.suit
 

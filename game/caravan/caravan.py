@@ -10,14 +10,15 @@ from game.cards.enums import Suit, Rank
 class Caravan:
     pile: list[PlayedCard] = field(default_factory=list)
 
-    # FIXME: Implement Queen direction changes 27.01.26
     @property
     def direction(self) -> Direction:
         # If a caravan has no or just one card, there is no direction, return no direction;
         if len(self.pile) < 2:
             return Direction.UNSET
 
-        ultimate_card_value = self.pile[-1].base_card.base_value
+        ultimate_card = self.pile[-1]
+
+        ultimate_card_value = ultimate_card.base_card.base_value
         penultimate_card_value = self.pile[-2].base_card.base_value
 
         # This case is practically not possible.
@@ -26,15 +27,22 @@ class Caravan:
             return Direction.UNSET
 
         # If the last card is higher than the previous one, the caravan is ascending; if it's lower, then the caravan is descending.
-        return Direction.ASCENDING if ultimate_card_value > penultimate_card_value else Direction.DESCENDING
+        base_direction = Direction.ASCENDING if ultimate_card_value > penultimate_card_value else Direction.DESCENDING
 
-    # FIXME: Implement Queen suit changes 27.01.26
+        if ultimate_card.queen_count % 2 == 1:
+            return Direction.ASCENDING if base_direction == Direction.DESCENDING else Direction.DESCENDING
+
+        return base_direction
+
+
     @property
-    def current_suit(self) -> Suit | None:
+    def current_suit(self) -> Suit:
         if not self.pile:
             return None
 
-        return self.pile[-1].base_card.suit
+        ultimate_card = self.pile[-1]
+
+        return ultimate_card.last_queen_suit or ultimate_card.base_card.suit
 
     @property
     def score(self) -> int:
@@ -50,7 +58,6 @@ class Caravan:
         return score
 
     # TODO: Check if methods 'add_base_card', 'attach' should return bool for success.
-
     def add_base_card(self, card: Card) -> None:
         if not card.rank.is_numeric:
             # TODO: Check raised errors later.

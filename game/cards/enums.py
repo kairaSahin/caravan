@@ -36,8 +36,11 @@ class Rank(Enum):
         return self in Rank._NUMERIC_RANKS
 
 
-class Suit(Enum):
+class _Suit(Enum):
     HEARTS = 'H'
     DIAMONDS = 'D'
     CLUBS = 'C'
     SPADES = 'S'
+
+# TODO: This may unnecessarily complicate functions in the future, by always requiring 'None' validations.
+type Suit = _Suit | None

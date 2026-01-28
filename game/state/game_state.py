@@ -16,6 +16,9 @@ class PlayerState:
     def get_card(self, card_id: UUID) -> Card | None:
         return self.hand.get(card_id)
 
+    def add_card_to_hand_card(self, card) -> None:
+        self.hand[card.id] = card
+
 @dataclass
 class GameState:
     players: dict[PlayerId, PlayerState]

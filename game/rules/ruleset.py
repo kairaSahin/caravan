@@ -1,16 +1,14 @@
 from game.caravan.enums import Direction
 from game.cards.card import Card
-from game.moves.types import Move, MoveType, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan
+from game.moves.types import MoveType, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan
 from game.player.enums import PlayerId
 from game.state.enums import GamePhase
-from game.state.game_state import GameState, PlayerState
+from game.state.functions import get_move_player
+from game.state.game_state import GameState
 
 # TODO: May add explanation comments to go over the rules one by one for future clarity.
-def _get_move_player(state: GameState, move: Move) -> PlayerState | None:
-    return state.players.get(move.player_id)
-
 def _get_card_to_play(state: GameState, move: PlayCard | AttachFaceCard | DiscardCard) -> Card | None:
-    player = _get_move_player(state, move)
+    player = get_move_player(state, move)
 
     if player is None:
         return None
@@ -24,7 +22,7 @@ def _is_game_finished(state: GameState) -> bool:
     return state.game_phase == GamePhase.FINISHED
 
 def _has_card_in_hand(state: GameState, move: PlayCard | AttachFaceCard | DiscardCard) -> bool:
-    player = _get_move_player(state, move)
+    player = get_move_player(state, move)
 
     if player is None:
         return False

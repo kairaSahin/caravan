@@ -44,7 +44,7 @@ class Caravan:
 
 
     @property
-    def current_suit(self) -> Suit:
+    def current_suit(self) -> Suit | None:
         if not self.pile:
             return None
 

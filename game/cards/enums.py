@@ -18,29 +18,17 @@ class Rank(Enum):
     JACK = 'J'
     JOKER = 'JK'
 
-    _NUMERIC_RANKS = {
-        ACE,
-        TWO,
-        THREE,
-        FOUR,
-        FIVE,
-        SIX,
-        SEVEN,
-        EIGHT,
-        NINE,
-        TEN,
-    }
-
     @property
     def is_numeric(self) -> bool:
-        return self in Rank._NUMERIC_RANKS
+        return self in _NUMERIC_RANKS
 
+_NUMERIC_RANKS = {
+    Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE,
+    Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
+}
 
-class _Suit(Enum):
+class Suit(Enum):
     HEARTS = 'H'
     DIAMONDS = 'D'
     CLUBS = 'C'
     SPADES = 'S'
-
-# TODO: This may unnecessarily complicate functions in the future, by always requiring 'None' validations.
-type Suit = _Suit | None

@@ -33,7 +33,7 @@ class PlayedCard:
 		return sum(1 for face_card in self.attachments if face_card.rank == Rank.QUEEN)
 
 	@property
-	def last_queen_suit(self) -> Suit:
+	def last_queen_suit(self) -> Suit | None:
 		for face_card in reversed(self.attachments):
 			if face_card.rank == Rank.QUEEN:
 				return face_card.suit

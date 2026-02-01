@@ -109,7 +109,7 @@ def _target_base_exists_and_is_numeric(state: GameState, move: AttachFaceCard) -
 	if not caravan:
 		return False
 
-	target_played_card = next((for played_card in caravan.pile if played_card.base_card.id == move.target_base_id),
+	target_played_card = next((played_card for played_card in caravan.pile if played_card.base_card.id == move.target_base_id),
 							  None)
 
 	if target_played_card is None:

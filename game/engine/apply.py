@@ -61,8 +61,7 @@ def _resolve_joker_effect(state: GameState, move: AttachFaceCard) -> None:
 	if not caravan:
 		return
 
-	target_played_card = next((for played_card in caravan.pile if played_card.base_card.id == move.target_base_id),
-							  None)
+	target_played_card = next((played_card for played_card in caravan.pile if played_card.base_card.id == move.target_base_id), None)
 
 	if not target_played_card:
 		return

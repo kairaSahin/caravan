@@ -1,6 +1,6 @@
 from game.caravan.enums import Direction
 from game.cards.card import Card
-from game.moves.types import MoveType, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan
+from game.moves.types import MoveType, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan, Concede
 from game.player.enums import PlayerId
 from game.state.enums import GamePhase
 from game.state.functions import get_move_player
@@ -166,4 +166,8 @@ def can_discard_caravan(state: GameState, move: DiscardCaravan) -> bool:
 			_caravan_belongs_to_player(move) and
 			_is_main_phase(state))
 
-# TODO: Add other move rules.
+
+def can_concede(state: GameState, move: Concede) -> bool:
+	return (not _is_game_finished(state) and
+			move.move_type is MoveType.CONCEDE and
+			_is_players_turn(state, move.player_id))

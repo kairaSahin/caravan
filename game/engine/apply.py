@@ -1,8 +1,8 @@
 from game.cards.enums import Rank
 from game.engine.exceptions import IllegalMove
-from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan
+from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan, Concede
 from game.player.enums import PlayerId
-from game.rules.ruleset import can_play_base, can_attach_face, can_discard_card, can_discard_caravan
+from game.rules.ruleset import can_play_base, can_attach_face, can_discard_card, can_discard_caravan, can_concede
 from game.state.enums import GamePhase
 from game.state.functions import get_move_player
 from game.state.game_state import GameState
@@ -165,6 +165,15 @@ def _apply_discard_caravan(state: GameState, move: DiscardCaravan) -> None:
 	_advance_after_play(state)
 
 
+# FIXME: Add concede function body when winning and losing is added.
+def _apply_concede(state: GameState, move: Concede) -> None:
+	if not can_concede(state, move):
+		# TODO: Check raised errors later.
+		raise IllegalMove("Concede move is not legal.")
+
+	pass
+
+
 def apply_move(state: GameState, move: Move) -> None:
 	if isinstance(move, PlayCard):
 		_apply_play_base(state, move)
@@ -177,6 +186,9 @@ def apply_move(state: GameState, move: Move) -> None:
 		return
 	elif isinstance(move, DiscardCaravan):
 		_apply_discard_caravan(state, move)
+		return
+	elif isinstance(move, Concede):
+		_apply_concede(state, move)
 		return
 
 	# TODO: Check raised errors later.

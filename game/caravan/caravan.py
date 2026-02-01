@@ -65,7 +65,6 @@ class Caravan:
 
 		return score
 
-	# TODO: Check if methods 'add_base_card', 'attach' should return bool for success.
 	def add_base_card(self, card: Card) -> None:
 		if not card.rank.is_numeric:
 			# TODO: Check raised errors later.

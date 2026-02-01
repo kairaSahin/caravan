@@ -22,10 +22,16 @@ class Rank(Enum):
     def is_numeric(self) -> bool:
         return self in _NUMERIC_RANKS
 
+    @property
+    def is_face(self) -> bool:
+        return self in _FACE_RANKS
+
 _NUMERIC_RANKS = {
     Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE,
     Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
 }
+
+_FACE_RANKS = {Rank.JACK, Rank.QUEEN, Rank.KING, Rank.JOKER}
 
 class Suit(Enum):
     HEARTS = 'H'

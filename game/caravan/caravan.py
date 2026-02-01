@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Callable
 from uuid import UUID
 
 from game.caravan.enums import Direction, CaravanId
@@ -89,6 +90,9 @@ class Caravan:
 
     def remove_base_card(self, target_base_id: UUID) -> None:
         self.pile = [played_card for played_card in self.pile if played_card.base_card.id != target_base_id]
+
+    def remove_base_cards_where(self, predicate: Callable[[Card], bool]) -> None:
+        self.pile = [played_card for played_card in self.pile if not predicate(played_card.base_card)]
 
     def discard_caravan(self) -> None:
         self.pile.clear()

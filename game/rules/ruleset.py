@@ -37,6 +37,14 @@ def _is_card_numeric(state: GameState, move: PlayCard) -> bool:
 
     return played_card.rank.is_numeric
 
+def _is_card_face(state: GameState, move: AttachFaceCard) -> bool:
+    played_card = _get_card_to_play(state, move)
+
+    if played_card is None:
+        return False
+
+    return played_card.rank.is_face
+
 def _caravan_belongs_to_player(move: PlayCard | DiscardCaravan) -> bool:
     return move.caravan_id.owner == move.player_id
 
@@ -50,6 +58,9 @@ def _is_valid_setup(state: GameState, move: PlayCard) -> bool:
         return False
 
     return len(caravan.pile) == 0
+
+def _is_main_phase(state: GameState) -> bool:
+    return state.game_phase == GamePhase.MAIN
 
 def _caravan_direction_or_suit_is_valid(state: GameState, move: PlayCard) -> bool:
     caravan = state.get_caravan(move.caravan_id)
@@ -81,6 +92,19 @@ def _caravan_direction_or_suit_is_valid(state: GameState, move: PlayCard) -> boo
 
     return suit_valid or direction_valid
 
+def _target_base_exists_and_is_numeric(state: GameState, move: AttachFaceCard) -> bool:
+    caravan = state.get_caravan(move.caravan_id)
+
+    if not caravan:
+        return False
+
+    target_played_card = next((for played_card in caravan.pile if played_card.base_card.id == move.target_base_id), None)
+
+    if target_played_card is None:
+        return False
+
+    return target_played_card.base_card.rank.is_numeric
+
 def can_play_base(state: GameState, move: PlayCard) -> bool:
     return (not _is_game_finished(state) and
             move.move_type is MoveType.PLAY_BASE and
@@ -91,5 +115,14 @@ def can_play_base(state: GameState, move: PlayCard) -> bool:
             _is_valid_setup(state, move) and
             _caravan_direction_or_suit_is_valid(state, move)
     )
+
+def can_attach_face(state: GameState, move: AttachFaceCard) -> bool:
+    return (not _is_game_finished(state) and
+            move.move_type is MoveType.ATTACH_FACE and
+            _is_players_turn(state, move.player_id) and
+            _has_card_in_hand(state, move) and
+            _is_card_face(state, move) and
+            _is_main_phase(state) and
+            _target_base_exists_and_is_numeric(state, move))
 
 # TODO: Add other move rules.

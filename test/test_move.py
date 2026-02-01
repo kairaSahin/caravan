@@ -58,3 +58,6 @@ def test_play_base() -> None:
     # Assert that the turn has successfully progressed
     assert game_state.current_player == PlayerId.P2
     assert game_state.turn_number == 1
+
+
+# TODO: Add multiple attach face card tests!

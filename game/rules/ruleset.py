@@ -72,6 +72,15 @@ def _is_main_phase(state: GameState) -> bool:
 	return state.game_phase == GamePhase.MAIN
 
 
+def _is_player_deck_empty(state: GameState, move: DiscardCard) -> bool:
+	player = get_move_player(state, move)
+
+	if player is None:
+		return False
+
+	return len(player.deck) == 0
+
+
 def _caravan_direction_or_suit_is_valid(state: GameState, move: PlayCard) -> bool:
 	caravan = state.get_caravan(move.caravan_id)
 	played_card = _get_card_to_play(state, move)
@@ -109,8 +118,9 @@ def _target_base_exists_and_is_numeric(state: GameState, move: AttachFaceCard) -
 	if not caravan:
 		return False
 
-	target_played_card = next((played_card for played_card in caravan.pile if played_card.base_card.id == move.target_base_id),
-							  None)
+	target_played_card = next(
+		(played_card for played_card in caravan.pile if played_card.base_card.id == move.target_base_id),
+		None)
 
 	if target_played_card is None:
 		return False
@@ -145,6 +155,15 @@ def can_discard_card(state: GameState, move: DiscardCard) -> bool:
 			move.move_type is MoveType.DISCARD_CARD and
 			_is_players_turn(state, move.player_id) and
 			_has_card_in_hand(state, move) and
+			not _is_player_deck_empty(state, move) and
+			_is_main_phase(state))
+
+
+def can_discard_caravan(state: GameState, move: DiscardCaravan) -> bool:
+	return (not _is_game_finished(state) and
+			move.move_type is MoveType.DISCARD_CARAVAN and
+			_is_players_turn(state, move.player_id) and
+			_caravan_belongs_to_player(move) and
 			_is_main_phase(state))
 
 # TODO: Add other move rules.

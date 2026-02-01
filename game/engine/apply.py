@@ -1,8 +1,8 @@
 from game.cards.enums import Rank
 from game.engine.exceptions import IllegalMove
-from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard
+from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan
 from game.player.enums import PlayerId
-from game.rules.ruleset import can_play_base, can_attach_face, can_discard_card
+from game.rules.ruleset import can_play_base, can_attach_face, can_discard_card, can_discard_caravan
 from game.state.enums import GamePhase
 from game.state.functions import get_move_player
 from game.state.game_state import GameState
@@ -61,7 +61,8 @@ def _resolve_joker_effect(state: GameState, move: AttachFaceCard) -> None:
 	if not caravan:
 		return
 
-	target_played_card = next((played_card for played_card in caravan.pile if played_card.base_card.id == move.target_base_id), None)
+	target_played_card = next(
+		(played_card for played_card in caravan.pile if played_card.base_card.id == move.target_base_id), None)
 
 	if not target_played_card:
 		return
@@ -148,6 +149,22 @@ def _apply_discard_card(state: GameState, move: DiscardCard) -> None:
 	_advance_after_play(state)
 
 
+def _apply_discard_caravan(state: GameState, move: DiscardCaravan) -> None:
+	if not can_discard_caravan(state, move):
+		# TODO: Check raised errors later.
+		raise IllegalMove("Discard caravan move is not legal.")
+
+	caravan = state.get_caravan(move.caravan_id)
+
+	if caravan is None:
+		# TODO: Check raised errors later.
+		raise IllegalMove("Invalid caravan.")
+
+	caravan.discard_caravan()
+
+	_advance_after_play(state)
+
+
 def apply_move(state: GameState, move: Move) -> None:
 	if isinstance(move, PlayCard):
 		_apply_play_base(state, move)
@@ -157,6 +174,9 @@ def apply_move(state: GameState, move: Move) -> None:
 		return
 	elif isinstance(move, DiscardCard):
 		_apply_discard_card(state, move)
+		return
+	elif isinstance(move, DiscardCaravan):
+		_apply_discard_caravan(state, move)
 		return
 
 	# TODO: Check raised errors later.

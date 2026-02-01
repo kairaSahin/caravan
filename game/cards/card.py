@@ -20,7 +20,7 @@ class Card:
 
 		return self.rank.value
 
-# TODO: Check on this later may change it 26.01.26
+
 @dataclass()
 class PlayedCard:
 	base_card: Card

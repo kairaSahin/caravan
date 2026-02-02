@@ -11,7 +11,7 @@ from game.state.enums import GamePhase
 from game.state.game_state import PlayerState, GameState
 
 
-def create_numeric_card(rank: Rank, suit: Suit) -> Card:
+def create_numeric_card(rank: Rank, suit: Suit | None) -> Card:
 	return Card(id=uuid4(), rank=rank, suit=suit)
 
 

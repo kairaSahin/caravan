@@ -10,7 +10,7 @@ class Card:
 	id: UUID
 	rank: Rank
 	# 'None' for joker.
-	suit: Suit
+	suit: Suit | None
 
 	@property
 	def base_value(self) -> int:

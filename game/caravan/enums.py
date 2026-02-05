@@ -9,6 +9,12 @@ class Direction(Enum):
 	ASCENDING = 'ascending'
 
 
+class RouteId(IntEnum):
+	A = 0
+	B = 1
+	C = 2
+
+
 # Actual Caravan names from the game Boneyard, Redding, Shady Sands, Dayglow, New Reno, and The Hub.
 class CaravanId(IntEnum):
 	P1_A = 0
@@ -21,3 +27,12 @@ class CaravanId(IntEnum):
 	@property
 	def owner(self) -> PlayerId:
 		return PlayerId.P1 if self in {CaravanId.P1_A, CaravanId.P1_B, CaravanId.P1_C} else PlayerId.P2
+
+	@property
+	def route(self) -> RouteId:
+		if self in {CaravanId.P1_A, CaravanId.P2_A}:
+			return RouteId.A
+		elif self in {CaravanId.P1_B, CaravanId.P2_B}:
+			return RouteId.B
+		else:
+			return RouteId.C

@@ -1,10 +1,15 @@
 from game.caravan.caravan import Caravan
 from game.caravan.enums import CaravanId, RouteId
 from game.engine.exceptions import InvalidOutcome
+from game.moves.types import Concede
 from game.player.enums import PlayerId
 from game.rules.constants import CARAVAN_MAX_SCORE, CARAVAN_MIN_SCORE
 from game.state.enums import WinReason
 from game.state.game_state import GameState, GameResult
+
+
+def _other_player(player_id: PlayerId) -> PlayerId:
+	return PlayerId.P1 if player_id == PlayerId.P2 else PlayerId.P2
 
 
 def _score_is_in_victory_range(score: int) -> bool:
@@ -42,7 +47,8 @@ def _get_route_winner(state: GameState, route_id: RouteId) -> CaravanId | None:
 	caravan_p2_tuple = state.get_caravan_by_route_player(PlayerId.P2, route_id)
 
 	if caravan_p1_tuple is None or caravan_p2_tuple is None:
-		return None
+		# TODO: Check raised errors later.
+		raise InvalidOutcome(f"Missing caravan for route {route_id}.")
 
 	(caravan_p1_id, caravan_p1) = caravan_p1_tuple
 	(caravan_p2_id, caravan_p2) = caravan_p2_tuple
@@ -68,7 +74,8 @@ def _all_routes_closed(state: GameState) -> bool:
 		caravan_p2_tuple = state.get_caravan_by_route_player(PlayerId.P2, route_id)
 
 		if caravan_p1_tuple is None or caravan_p2_tuple is None:
-			return False
+			# TODO: Check raised errors later.
+			raise InvalidOutcome(f"Missing caravan for route {route_id}.")
 
 		(_, caravan_p1) = caravan_p1_tuple
 		(_, caravan_p2) = caravan_p2_tuple
@@ -107,14 +114,33 @@ def _get_caravan_sales_winner(state: GameState) -> GameResult | None:
 						  reason=WinReason.TWO_CARAVANS if p2_wins == 2 else WinReason.THREE_CARAVANS,
 						  end_turn_number=state.turn_number)
 
+	# TODO: Check raised errors later.
 	raise InvalidOutcome(f"Invalid victory outcome: Both players won with P1: {p1_wins} and P2: {p2_wins}.")
 
 
-def check_victory(state: GameState) -> GameResult | None:
+def _player_out_of_cards(state: GameState) -> PlayerId | None:
+	for player_id, player_state in state.players.items():
+		if len(player_state.hand) == 0 and len(player_state.deck) == 0:
+			return player_id
+
+	return None
+
+
+def check_victory(state: GameState, move: Concede | None = None) -> GameResult | None:
+	if move is not None and isinstance(move, Concede):
+		return GameResult(winner_id=_other_player(move.player_id),
+						  reason=WinReason.CONCEDE, end_turn_number=state.turn_number)
+
 	if _all_routes_closed(state):
 		caravan_game_result = _get_caravan_sales_winner(state)
 
 		if caravan_game_result is not None:
 			return caravan_game_result
+
+	player_with_no_cards_left_id = _player_out_of_cards(state)
+
+	if player_with_no_cards_left_id is not None:
+		return GameResult(winner_id=_other_player(player_with_no_cards_left_id),
+						  reason=WinReason.OUT_OF_CARDS, end_turn_number=state.turn_number)
 
 	return None

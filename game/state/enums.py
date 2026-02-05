@@ -11,4 +11,4 @@ class WinReason(Enum):
 	TWO_CARAVANS = "two_caravans"
 	THREE_CARAVANS = "three_caravans"
 	CONCEDE = "concede"
-	EMPTY_DECK = "empty_deck"
+	OUT_OF_CARDS = "out_of_cards"

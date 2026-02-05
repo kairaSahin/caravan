@@ -1,19 +1,20 @@
 from game.cards.enums import Rank
 from game.engine.exceptions import IllegalMove
+from game.engine.victory import check_victory
 from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan, Concede
 from game.player.enums import PlayerId
 from game.rules.ruleset import can_play_base, can_attach_face, can_discard_card, can_discard_caravan, can_concede
 from game.state.enums import GamePhase
 from game.state.functions import get_move_player
-from game.state.game_state import GameState
+from game.state.game_state import GameState, GameResult
 
 
 def _draw_one_if_possible(state: GameState, move: Move) -> None:
 	player = get_move_player(state, move)
 
 	if not player.deck or state.game_phase == GamePhase.SETUP:
-		# FIXME: If a player's deck is empty, they will lose. However this may be implemented somewhere else.
-		# FIXME: If the game is still in SETUP players do not draw new cards. This might also be implemented externally.
+		# Players do not lose the game if their deck is empty, they just cannot draw anymore
+		# A player losing due to having no cards left, i.e. empty hand and empty deck, is handled in "game.engine.victory.check_victory".
 		return
 
 	new_card = player.deck.pop()
@@ -86,7 +87,7 @@ def _resolve_joker_effect(state: GameState, move: AttachFaceCard) -> None:
 			)
 
 
-def _apply_play_base(state: GameState, move: PlayCard) -> None:
+def _apply_play_base(state: GameState, move: PlayCard) -> GameResult | None:
 	if not can_play_base(state, move):
 		# TODO: Check raised errors later.
 		raise IllegalMove("Play base move is not legal.")
@@ -102,11 +103,18 @@ def _apply_play_base(state: GameState, move: PlayCard) -> None:
 
 	caravan.add_base_card(played_card)
 
+	game_result = check_victory(state)
+
+	if game_result is not None:
+		return game_result
+
 	_draw_one_if_possible(state, move)
 	_advance_after_play(state)
 
+	return None
 
-def _apply_attach_face_card(state: GameState, move: AttachFaceCard) -> None:
+
+def _apply_attach_face_card(state: GameState, move: AttachFaceCard) -> GameResult | None:
 	if not can_attach_face(state, move):
 		# TODO: Check raised errors later.
 		raise IllegalMove("Attach face move is not legal.")
@@ -128,11 +136,18 @@ def _apply_attach_face_card(state: GameState, move: AttachFaceCard) -> None:
 	elif face_card.rank == Rank.JOKER:
 		_resolve_joker_effect(state, move)
 
+	game_result = check_victory(state)
+
+	if game_result is not None:
+		return game_result
+
 	_draw_one_if_possible(state, move)
 	_advance_after_play(state)
 
+	return None
 
-def _apply_discard_card(state: GameState, move: DiscardCard) -> None:
+
+def _apply_discard_card(state: GameState, move: DiscardCard) -> GameResult | None:
 	if not can_discard_card(state, move):
 		# TODO: Check raised errors later.
 		raise IllegalMove("Discard card move is not legal.")
@@ -145,11 +160,18 @@ def _apply_discard_card(state: GameState, move: DiscardCard) -> None:
 
 	player.hand.pop(move.card_id)
 
+	game_result = check_victory(state)
+
+	if game_result is not None:
+		return game_result
+
 	_draw_one_if_possible(state, move)
 	_advance_after_play(state)
 
+	return None
 
-def _apply_discard_caravan(state: GameState, move: DiscardCaravan) -> None:
+
+def _apply_discard_caravan(state: GameState, move: DiscardCaravan) -> GameResult | None:
 	if not can_discard_caravan(state, move):
 		# TODO: Check raised errors later.
 		raise IllegalMove("Discard caravan move is not legal.")
@@ -162,34 +184,42 @@ def _apply_discard_caravan(state: GameState, move: DiscardCaravan) -> None:
 
 	caravan.discard_caravan()
 
+	game_result = check_victory(state)
+
+	if game_result is not None:
+		return game_result
+
 	_advance_after_play(state)
 
+	return None
 
-# FIXME: Add concede function body when winning and losing is added.
-def _apply_concede(state: GameState, move: Concede) -> None:
+
+def _apply_concede(state: GameState, move: Concede) -> GameResult | None:
 	if not can_concede(state, move):
 		# TODO: Check raised errors later.
 		raise IllegalMove("Concede move is not legal.")
 
-	pass
+	game_result = check_victory(state, move)
+
+	if game_result is not None:
+		return game_result
+
+	return None
 
 
-def apply_move(state: GameState, move: Move) -> None:
+def apply_move(state: GameState, move: Move) -> GameResult | None:
 	if isinstance(move, PlayCard):
-		_apply_play_base(state, move)
-		return
+		game_result = _apply_play_base(state, move)
 	elif isinstance(move, AttachFaceCard):
-		_apply_attach_face_card(state, move)
-		return
+		game_result = _apply_attach_face_card(state, move)
 	elif isinstance(move, DiscardCard):
-		_apply_discard_card(state, move)
-		return
+		game_result = _apply_discard_card(state, move)
 	elif isinstance(move, DiscardCaravan):
-		_apply_discard_caravan(state, move)
-		return
+		game_result = _apply_discard_caravan(state, move)
 	elif isinstance(move, Concede):
-		_apply_concede(state, move)
-		return
+		game_result = _apply_concede(state, move)
+	else:
+		# TODO: Check raised errors later.
+		raise IllegalMove(f"Unsupported move: {type(move).__name__}")
 
-	# TODO: Check raised errors later.
-	raise IllegalMove(f"Unsupported move: {type(move).__name__}")
+	return game_result

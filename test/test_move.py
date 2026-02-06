@@ -4,7 +4,7 @@ from game.caravan.enums import CaravanId, Direction
 from game.cards.enums import Rank, Suit
 from game.engine.apply import apply_move
 from game.engine.exceptions import IllegalMove
-from game.moves.types import PlayCard, DiscardCard, AttachFaceCard
+from game.moves.types import PlayCard, DiscardCard, AttachFaceCard, DiscardCaravan
 from game.player.enums import PlayerId
 from game.state.enums import GamePhase
 from test.functions import create_numeric_card, create_player, initialise_caravans, create_game_state, create_move
@@ -12,10 +12,11 @@ from test.functions import create_numeric_card, create_player, initialise_carava
 
 def test_can_play_base_and_increase_caravan_score() -> None:
 	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -68,10 +69,11 @@ def test_can_play_base_and_increase_caravan_score() -> None:
 
 def test_can_discard_card() -> None:
 	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -115,9 +117,10 @@ def test_can_discard_card() -> None:
 
 def test_cannot_discard_card_deck_empty() -> None:
 	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 
 	player_1 = create_player([], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -148,11 +151,12 @@ def test_cannot_discard_card_deck_empty() -> None:
 
 def test_attach_king() -> None:
 	hand_card = create_numeric_card(Rank.KING, Suit.HEARTS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -195,12 +199,13 @@ def test_attach_king() -> None:
 
 def test_attach_queen() -> None:
 	hand_card = create_numeric_card(Rank.QUEEN, Suit.DIAMONDS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
 	caravan_card_2 = create_numeric_card(Rank.THREE, Suit.SPADES)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -249,11 +254,12 @@ def test_attach_queen() -> None:
 
 def test_attach_queen_direction_unset() -> None:
 	hand_card = create_numeric_card(Rank.QUEEN, Suit.DIAMONDS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -301,11 +307,12 @@ def test_attach_queen_direction_unset() -> None:
 
 def test_attach_jack() -> None:
 	hand_card = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -346,13 +353,14 @@ def test_attach_jack() -> None:
 
 def test_attach_jack_on_king_attached_base() -> None:
 	hand_card = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
 	caravan_card_2 = create_numeric_card(Rank.SIX, Suit.SPADES)
 	caravan_king_card = create_numeric_card(Rank.KING, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -400,8 +408,10 @@ def test_attach_jack_on_king_attached_base() -> None:
 	assert game_state.current_player == PlayerId.P2
 	assert game_state.turn_number == 1
 
+
 def test_attach_joker_on_non_ace() -> None:
 	hand_card = create_numeric_card(Rank.JOKER, None)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
 	caravan_card_2 = create_numeric_card(Rank.FOUR, Suit.SPADES)
@@ -411,7 +421,7 @@ def test_attach_joker_on_non_ace() -> None:
 	caravan_card_6 = create_numeric_card(Rank.TEN, Suit.CLUBS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -484,6 +494,7 @@ def test_attach_joker_on_non_ace() -> None:
 
 def test_attach_joker_on_ace() -> None:
 	hand_card = create_numeric_card(Rank.JOKER, None)
+	hand_card_p2 = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
 	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 	caravan_card = create_numeric_card(Rank.ACE, Suit.HEARTS)
 	caravan_card_2 = create_numeric_card(Rank.FOUR, Suit.SPADES)
@@ -494,7 +505,7 @@ def test_attach_joker_on_ace() -> None:
 	caravan_card_7 = create_numeric_card(Rank.FIVE, Suit.HEARTS)
 
 	player_1 = create_player([deck_card], [hand_card])
-	player_2 = create_player([], [])
+	player_2 = create_player([], [hand_card_p2])
 
 	caravans = initialise_caravans()
 
@@ -564,3 +575,57 @@ def test_attach_joker_on_ace() -> None:
 	# Assert that the turn has successfully progressed
 	assert game_state.current_player == PlayerId.P2
 	assert game_state.turn_number == 1
+
+
+def test_discard_caravan():
+	hand_card = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
+	hand_card_p2 = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
+	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
+	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
+	caravan_card_2 = create_numeric_card(Rank.SIX, Suit.SPADES)
+
+	player_1 = create_player([deck_card], [hand_card])
+	player_2 = create_player([], [hand_card_p2])
+
+	caravans = initialise_caravans()
+
+	caravan_to_play = CaravanId.P1_A
+	player_to_play = PlayerId.P1
+
+	game_state = create_game_state(
+		players=[player_1, player_2],
+		caravans=caravans,
+		current_player=player_to_play,
+		game_phase=GamePhase.MAIN,
+		turn_number=7
+	)
+	discard_caravan_move = create_move(
+		DiscardCaravan,
+		player_id=player_to_play,
+		caravan_id=caravan_to_play,
+	)
+	caravan = game_state.get_caravan(caravan_to_play)
+	caravan.add_base_card(caravan_card)
+	caravan.add_base_card(caravan_card_2)
+
+	# Assert that caravan only has a score of already placed card
+	assert caravan.score == caravan_card.rank.value + caravan_card_2.rank.value
+	# Assert that the caravan has a direction of Descending, 10 > 6
+	assert caravan.direction == Direction.DESCENDING
+	# Assert that the suit of the caravan is of the last card; Spades
+	assert caravan.current_suit == Suit.SPADES
+
+	apply_move(game_state, discard_caravan_move)
+
+	# Assert that the caravan has been wholly discarded
+	assert len(caravan.pile) == 0
+	# Assert that score of the caravan is back to 0
+	assert caravan.score == 0
+	# Assert that the direction of the caravan has successfully changed to Unset due to no cards being left
+	assert caravan.direction == Direction.UNSET
+	# Assert that the suit of the caravan has changed to None, with no cards left
+	assert caravan.current_suit is None
+
+	# Assert that the turn has successfully progressed
+	assert game_state.current_player == PlayerId.P2
+	assert game_state.turn_number == 8

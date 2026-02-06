@@ -5,7 +5,7 @@ from game.caravan.caravan import Caravan
 from game.caravan.enums import CaravanId
 from game.cards.card import Card
 from game.cards.enums import Rank, Suit
-from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan
+from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan, Concede
 from game.player.enums import PlayerId
 from game.state.enums import GamePhase
 from game.state.game_state import PlayerState, GameState
@@ -42,10 +42,10 @@ def create_move(move_class: type[PlayCard], **kwargs) -> PlayCard: ...
 def create_move(move_class: type[AttachFaceCard], **kwargs) -> AttachFaceCard: ...
 @overload
 def create_move(move_class: type[DiscardCard], **kwargs) -> DiscardCard: ...
-
-
 @overload
 def create_move(move_class: type[DiscardCaravan], **kwargs) -> DiscardCaravan: ...
+@overload
+def create_move(move_class: type[Concede], **kwargs) -> Concede: ...
 
 
 def create_move(move_class: type[Move], **kwargs) -> Move:

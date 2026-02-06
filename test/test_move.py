@@ -629,3 +629,46 @@ def test_discard_caravan():
 	# Assert that the turn has successfully progressed
 	assert game_state.current_player == PlayerId.P2
 	assert game_state.turn_number == 8
+
+
+def test_cannot_discard_caravan_during_setup():
+	hand_card = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
+	hand_card_p2 = create_numeric_card(Rank.JACK, Suit.DIAMONDS)
+	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
+	caravan_card = create_numeric_card(Rank.TEN, Suit.HEARTS)
+	caravan_card_2 = create_numeric_card(Rank.SIX, Suit.SPADES)
+
+	player_1 = create_player([deck_card], [hand_card])
+	player_2 = create_player([], [hand_card_p2])
+
+	caravans = initialise_caravans()
+
+	caravan_to_play = CaravanId.P1_A
+	player_to_play = PlayerId.P1
+
+	game_state = create_game_state(
+		players=[player_1, player_2],
+		caravans=caravans,
+		current_player=player_to_play,
+		game_phase=GamePhase.SETUP,
+		turn_number=7
+	)
+	discard_caravan_move = create_move(
+		DiscardCaravan,
+		player_id=player_to_play,
+		caravan_id=caravan_to_play,
+	)
+	caravan = game_state.get_caravan(caravan_to_play)
+	caravan.add_base_card(caravan_card)
+	caravan.add_base_card(caravan_card_2)
+
+	# Assert that caravan only has a score of already placed card
+	assert caravan.score == caravan_card.rank.value + caravan_card_2.rank.value
+	# Assert that the caravan has a direction of Descending, 10 > 6
+	assert caravan.direction == Direction.DESCENDING
+	# Assert that the suit of the caravan is of the last card; Spades
+	assert caravan.current_suit == Suit.SPADES
+
+	# Assert that a caravan cannot be discarded during the Setup phase
+	with pytest.raises(IllegalMove):
+		apply_move(game_state, discard_caravan_move)

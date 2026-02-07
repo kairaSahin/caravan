@@ -68,19 +68,9 @@ def _get_route_winner_caravans(state: GameState) -> set[CaravanId]:
 	return winners
 
 
-def _all_routes_closed(state: GameState) -> bool:
+def _all_routes_sold(state: GameState) -> bool:
 	for route_id in RouteId:
-		caravan_p1_tuple = state.get_caravan_by_route_player(PlayerId.P1, route_id)
-		caravan_p2_tuple = state.get_caravan_by_route_player(PlayerId.P2, route_id)
-
-		if caravan_p1_tuple is None or caravan_p2_tuple is None:
-			# TODO: Check raised errors later.
-			raise InvalidOutcome(f"Missing caravan for route {route_id}.")
-
-		(_, caravan_p1) = caravan_p1_tuple
-		(_, caravan_p2) = caravan_p2_tuple
-
-		if not (_score_is_in_victory_range(caravan_p1.score) or _score_is_in_victory_range(caravan_p2.score)):
+		if _get_route_winner(state, route_id) is None:
 			return False
 
 	return True
@@ -131,7 +121,7 @@ def check_victory(state: GameState, move: Concede | None = None) -> GameResult |
 		return GameResult(winner_id=_other_player(move.player_id),
 						  reason=WinReason.CONCEDE, end_turn_number=state.turn_number)
 
-	if _all_routes_closed(state):
+	if _all_routes_sold(state):
 		caravan_game_result = _get_caravan_sales_winner(state)
 
 		if caravan_game_result is not None:

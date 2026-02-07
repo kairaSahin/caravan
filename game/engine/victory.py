@@ -4,7 +4,7 @@ from game.engine.exceptions import InvalidOutcome
 from game.moves.types import Concede
 from game.player.enums import PlayerId
 from game.rules.constants import CARAVAN_MAX_SCORE, CARAVAN_MIN_SCORE
-from game.state.enums import WinReason
+from game.state.enums import WinReason, GamePhase
 from game.state.game_state import GameState, GameResult
 
 
@@ -116,8 +116,14 @@ def _player_out_of_cards(state: GameState) -> PlayerId | None:
 	return None
 
 
+def _set_game_phase_to_finished(state: GameState) -> None:
+	state.game_phase = GamePhase.FINISHED
+
+
 def check_victory(state: GameState, move: Concede | None = None) -> GameResult | None:
 	if move is not None and isinstance(move, Concede):
+		_set_game_phase_to_finished(state)
+
 		return GameResult(winner_id=_other_player(move.player_id),
 						  reason=WinReason.CONCEDE, end_turn_number=state.turn_number)
 
@@ -125,11 +131,15 @@ def check_victory(state: GameState, move: Concede | None = None) -> GameResult |
 		caravan_game_result = _get_caravan_sales_winner(state)
 
 		if caravan_game_result is not None:
+			_set_game_phase_to_finished(state)
+
 			return caravan_game_result
 
 	player_with_no_cards_left_id = _player_out_of_cards(state)
 
 	if player_with_no_cards_left_id is not None:
+		_set_game_phase_to_finished(state)
+
 		return GameResult(winner_id=_other_player(player_with_no_cards_left_id),
 						  reason=WinReason.OUT_OF_CARDS, end_turn_number=state.turn_number)
 

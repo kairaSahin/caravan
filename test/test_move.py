@@ -672,3 +672,54 @@ def test_cannot_discard_caravan_during_setup():
 	# Assert that a caravan cannot be discarded during the Setup phase
 	with pytest.raises(IllegalMove):
 		apply_move(game_state, discard_caravan_move)
+
+
+def test_setup_is_finished():
+	hand_card = create_numeric_card(Rank.ACE, Suit.HEARTS)
+	hand_card_p2 = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
+	deck_card = create_numeric_card(Rank.FIVE, Suit.HEARTS)
+
+	player_1 = create_player([deck_card], [hand_card])
+	player_2 = create_player([], [hand_card_p2])
+
+	caravans = initialise_caravans()
+
+	caravan_to_play = CaravanId.P1_A
+	player_to_play = PlayerId.P1
+	turn_number = 5
+
+	game_state = create_game_state(
+		players=[player_1, player_2],
+		caravans=caravans,
+		current_player=player_to_play,
+		game_phase=GamePhase.SETUP,
+		turn_number=turn_number
+	)
+
+	play_base_move = create_move(
+		PlayCard,
+		player_id=player_to_play,
+		card_id=hand_card.id,
+		caravan_id=caravan_to_play,
+	)
+
+	caravan = game_state.get_caravan(caravan_to_play)
+	caravan_2 = game_state.get_caravan(CaravanId.P1_B)
+	caravan_3 = game_state.get_caravan(CaravanId.P1_C)
+	caravan_4 = game_state.get_caravan(CaravanId.P2_A)
+	caravan_5 = game_state.get_caravan(CaravanId.P2_B)
+	caravan_6 = game_state.get_caravan(CaravanId.P2_C)
+
+	caravan_2.add_base_card(create_numeric_card(Rank.FIVE, Suit.HEARTS))
+	caravan_3.add_base_card(create_numeric_card(Rank.TEN, Suit.HEARTS))
+	caravan_4.add_base_card(create_numeric_card(Rank.TEN, Suit.HEARTS))
+	caravan_5.add_base_card(create_numeric_card(Rank.TEN, Suit.HEARTS))
+	caravan_6.add_base_card(create_numeric_card(Rank.TEN, Suit.HEARTS))
+
+	apply_move(game_state, play_base_move)
+
+	# Assert that all caravans have at lease one card each
+	assert all(len(c.pile) > 0 for c in [caravan, caravan_2, caravan_3, caravan_4, caravan_5, caravan_6])
+
+	# Assert that the game phase has changed from Setup to Main
+	assert game_state.game_phase == GamePhase.MAIN

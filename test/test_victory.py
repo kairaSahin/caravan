@@ -40,6 +40,9 @@ def test_concede_victory():
 		end_turn_number=turn_number
 	)
 
+	# Assert that the game phase has changed to FINISHED
+	assert game_state.game_phase == GamePhase.FINISHED
+
 
 def test_out_of_cards_victory():
 	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
@@ -82,6 +85,9 @@ def test_out_of_cards_victory():
 		reason=WinReason.OUT_OF_CARDS,
 		end_turn_number=turn_number
 	)
+
+	# Assert that the game phase has changed to FINISHED
+	assert game_state.game_phase == GamePhase.FINISHED
 
 
 def test_three_caravan_sales_victory():
@@ -134,6 +140,9 @@ def test_three_caravan_sales_victory():
 		end_turn_number=turn_number
 	)
 
+	# Assert that the game phase has changed to FINISHED
+	assert game_state.game_phase == GamePhase.FINISHED
+
 
 def test_two_caravan_sales_victory():
 	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
@@ -185,6 +194,9 @@ def test_two_caravan_sales_victory():
 		end_turn_number=turn_number
 	)
 
+	# Assert that the game phase has changed to FINISHED
+	assert game_state.game_phase == GamePhase.FINISHED
+
 
 def test_tied_caravan_sales():
 	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
@@ -235,6 +247,9 @@ def test_tied_caravan_sales():
 
 	# Assert that the game is not finished even though player 1 has 'sold' all their caravans, as Route C is tied between the players
 	assert game_result is None
+
+	# Assert that the game phase is still MAIN
+	assert game_state.game_phase == GamePhase.MAIN
 
 
 def test_player_sells_caravan_but_loses():
@@ -291,3 +306,6 @@ def test_player_sells_caravan_but_loses():
 		reason=WinReason.TWO_CARAVANS,
 		end_turn_number=turn_number
 	)
+
+	# Assert that the game phase has changed to FINISHED
+	assert game_state.game_phase == GamePhase.FINISHED

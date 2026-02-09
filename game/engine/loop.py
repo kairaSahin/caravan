@@ -16,6 +16,7 @@ class StepResult:
 
 # TODO: Check additional function callables if they are redundant/useless.
 GetMoveFn = Callable[[GameState], Move]
+OnTurnStartFn = Callable[[GameState], None]
 OnErrorFn = Callable[[GameState, str], None]
 OnAppliedFn = Callable[[GameState, Move], None]
 OnGameEndFn = Callable[[GameState, GameResult], None]
@@ -38,10 +39,14 @@ def step(state: GameState, move: Move) -> StepResult:
 
 # Keyword argument force (*) added as future safety with optional function callables, so if some are removed, it is easier to adapt later on
 def run(state: GameState, get_move: GetMoveFn, *,
+		on_turn_start: OnTurnStartFn | None = None,
 		on_error: OnErrorFn | None = None,
 		on_applied: OnAppliedFn | None = None,
 		on_game_end: OnGameEndFn | None = None, ) -> GameResult:
 	while state.game_phase != GamePhase.FINISHED:
+		if on_turn_start is not None:
+			on_turn_start(state)
+
 		move = get_move(state)
 
 		step_result = step(state, move)

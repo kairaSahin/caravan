@@ -26,6 +26,20 @@ class Rank(Enum):
 	def is_face(self) -> bool:
 		return self in _FACE_RANKS
 
+	@property
+	def get_full_name(self):
+		if self in _FACE_RANKS:
+			if self.value == Rank.JACK:
+				return 'Jack'
+			elif self.value == Rank.QUEEN:
+				return 'Queen'
+			elif self.value == Rank.KING:
+				return 'King'
+			else:
+				return 'Spades'
+		else:
+			return self.value
+
 
 _NUMERIC_RANKS = {
 	Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE,
@@ -40,3 +54,25 @@ class Suit(Enum):
 	DIAMONDS = 'D'
 	CLUBS = 'C'
 	SPADES = 'S'
+
+	@property
+	def get_full_name(self):
+		if self.value == Suit.HEARTS:
+			return 'Hearts'
+		elif self.value == Suit.DIAMONDS:
+			return 'Diamonds'
+		elif self.value == Suit.CLUBS:
+			return 'Clubs'
+		else:
+			return 'Spades'
+
+	@property
+	def get_suit_symbol(self):
+		if self.value == Suit.HEARTS:
+			return '♥'
+		elif self.value == Suit.DIAMONDS:
+			return '♦'
+		elif self.value == Suit.CLUBS:
+			return '♣'
+		else:
+			return '♠'

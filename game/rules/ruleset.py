@@ -136,8 +136,7 @@ def can_play_base(state: GameState, move: PlayCard) -> bool:
 			_is_card_numeric(state, move) and
 			_caravan_belongs_to_player(move) and
 			_is_valid_setup(state, move) and
-			_caravan_direction_or_suit_is_valid(state, move)
-			)
+			_caravan_direction_or_suit_is_valid(state, move))
 
 
 def can_attach_face(state: GameState, move: AttachFaceCard) -> bool:

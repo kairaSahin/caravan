@@ -6,6 +6,15 @@ class GamePhase(IntEnum):
 	MAIN = 1
 	FINISHED = 2
 
+	@property
+	def get_name(self):
+		if self == GamePhase.SETUP:
+			return "Setup"
+		if self == GamePhase.MAIN:
+			return "Main"
+		else:
+			return "Finished"
+
 
 class WinReason(Enum):
 	TWO_CARAVANS = "two_caravans"

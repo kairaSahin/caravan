@@ -20,6 +20,16 @@ class Card:
 
 		return self.rank.value
 
+	def get_name(self, full_name=False, suit_symbolized=True) -> str:
+		rank_name = self.rank.get_full_name if full_name else self.rank.value
+
+		if self.suit is not None:
+			suit_name = self.suit.get_suit_symbol if suit_symbolized else f" of {self.suit.get_full_name}"
+		else:
+			suit_name = ""
+
+		return f"{rank_name}{suit_name}"
+
 
 @dataclass()
 class PlayedCard:

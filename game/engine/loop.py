@@ -14,12 +14,11 @@ class StepResult:
 	error: str | None = field(default=None)
 
 
-# TODO: Check additional function callables if they are redundant/useless.
-GetMoveFn = Callable[[GameState], Move]
-OnTurnStartFn = Callable[[GameState], None]
-OnErrorFn = Callable[[GameState, str], None]
-OnAppliedFn = Callable[[GameState, Move], None]
-OnGameEndFn = Callable[[GameState, GameResult], None]
+type GetMoveFn = Callable[[GameState], Move]
+type OnTurnStartFn = Callable[[GameState], None]
+type OnErrorFn = Callable[[GameState, str], None]
+type OnAppliedFn = Callable[[GameState, Move], None]
+type OnGameEndFn = Callable[[GameState, GameResult], None]
 
 
 def step(state: GameState, move: Move) -> StepResult:

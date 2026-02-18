@@ -1,5 +1,5 @@
 from game.cli.menu import choose_action_menu
-from game.cli.printer import print_game_state, print_applied_moves
+from game.cli.printer import print_game_state, print_applied_moves, print_error
 from game.moves.types import Move
 from game.state.game_state import GameState
 
@@ -14,3 +14,7 @@ def on_turn_start_cli(state: GameState) -> None:
 
 def on_applied_cli(state: GameState, move: Move) -> None:
 	print_applied_moves(state, move)
+
+
+def on_error_cli(state: GameState, err: str) -> None:
+	print_error(state, err)

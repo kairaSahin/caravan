@@ -136,3 +136,7 @@ def print_applied_moves(state: GameState, move: Move) -> None:
 		print(f"P{move.player_id} discarded Caravan P{caravan_id.owner}.{caravan_id.route.value}")
 	elif isinstance(move, Concede):
 		print(f"P{move.player_id} conceded")
+
+
+def print_error(_state: GameState, err: str) -> None:
+	print(f"Illegal move: {err}")

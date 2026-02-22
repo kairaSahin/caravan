@@ -8,10 +8,10 @@ from numpy.random import default_rng
 
 from game.setup.game_initializer import init_game
 from game.state.enums import WinReason, GamePhase
-from game.state.game_state import GameResult, GameState
+from game.state.game_state import GameResult, GameState, PlayerState
 
 # noinspection PyProtectedMember
-from network.server.serializers import _game_result_to_payload
+from network.server.serializers import _game_result_to_payload, _players_to_payload
 # noinspection PyProtectedMember
 from network.server.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase
 
@@ -28,9 +28,12 @@ def _init_game_state() -> GameState:
 	return init_game(game_config)
 
 
-def _serialize_deserialize(deserializer: Callable[[dict | int], PlayerId | GameResult | GamePhase] | None,
-						   serializer: Callable[[Any], dict] | None,
-						   obj: object) -> PlayerId | GameResult | GamePhase:
+type _TStateAttributes = PlayerId | GameResult | GamePhase | int | dict[PlayerId, PlayerState]
+
+def _serialize_deserialize(
+		deserializer: Callable[[dict | int], _TStateAttributes] | None,
+		serializer: Callable[[_TStateAttributes], dict] | None,
+		obj: _TStateAttributes) -> _TStateAttributes:
 	if serializer is not None:
 		obj_to_dumps = serializer(obj)
 

@@ -1,6 +1,9 @@
 import json
-from typing import Callable, Any
+from typing import Callable
 
+from game.caravan.caravan import Caravan
+from game.caravan.enums import CaravanId
+from game.cards.enums import Rank, Suit
 from game.player.enums import PlayerId
 from game.setup.deck_builder import build_standard_deck
 from game.setup.game_config import GameConfig
@@ -13,7 +16,9 @@ from game.state.game_state import GameResult, GameState, PlayerState
 # noinspection PyProtectedMember
 from network.server.serializers import _game_result_to_payload, _players_to_payload
 # noinspection PyProtectedMember
-from network.server.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase
+from network.server.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
+	_payload_to_players
+from test.functions import create_numeric_card
 
 
 def _init_game_state() -> GameState:
@@ -28,11 +33,13 @@ def _init_game_state() -> GameState:
 	return init_game(game_config)
 
 
-type _TStateAttributes = PlayerId | GameResult | GamePhase | int | dict[PlayerId, PlayerState]
+type _TStateAttributes = PlayerId | GameResult | GamePhase | int | dict[PlayerId, PlayerState] | dict[
+	CaravanId, Caravan]
+
 
 def _serialize_deserialize(
-		deserializer: Callable[[dict | int], _TStateAttributes] | None,
-		serializer: Callable[[_TStateAttributes], dict] | None,
+		deserializer: Callable[[dict | int | None], _TStateAttributes] | None,
+		serializer: Callable[[_TStateAttributes], dict | None] | None,
 		obj: _TStateAttributes) -> _TStateAttributes:
 	if serializer is not None:
 		obj_to_dumps = serializer(obj)
@@ -100,3 +107,20 @@ def test_turn_number_serialization() -> None:
 
 	# Assert the serialized and deserialized turn number stays the same.
 	assert state.turn_number == deserialized_turn_number
+
+
+def test_players_serialization() -> None:
+	state = _init_game_state()
+
+	deserialized_players = _serialize_deserialize(_payload_to_players, _players_to_payload, state.players)
+
+	# Assert the serialized and deserialized players stays the same.
+	assert state.players == deserialized_players
+	# Assert a single player stays the same and is fetchable.
+	assert state.players[PlayerId.P1] == deserialized_players[PlayerId.P1]
+
+	# Assert that functions of PlayerState are usable.
+	card = create_numeric_card(Rank.ACE, Suit.HEARTS)
+	deserialized_players[PlayerId.P1].add_card_to_hand_card(card)
+
+	assert deserialized_players[PlayerId.P1].hand[card.id] == card

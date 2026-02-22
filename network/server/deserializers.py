@@ -1,3 +1,7 @@
+from uuid import UUID
+
+from game.cards.card import Card
+from game.cards.enums import Suit, Rank
 from game.player.enums import PlayerId
 from game.state.enums import WinReason, GamePhase
 from game.state.game_state import GameState, GameResult, PlayerState
@@ -20,6 +24,35 @@ def _payload_to_current_player(player_id: int) -> PlayerId:
 
 def _payload_to_game_phase(game_phase: int) -> GamePhase:
 	return GamePhase(game_phase)
+
+
+def _payload_to_players(players: dict) -> dict[PlayerId, PlayerState]:
+	# We wrap with `int()` here because in this dictionary the PlayerId is stored as a key so it is loaded as a string by `json.loads()`.
+	return {PlayerId(int(player_id)): _payload_to_player(player) for player_id, player in players.items()}
+
+
+def _payload_to_player(player: dict) -> PlayerState:
+	return PlayerState(
+		deck=_payload_to_deck(player['deck']),
+		hand=_payload_to_hand(player['hand']),
+	)
+
+
+def _payload_to_deck(deck: list) -> list[Card]:
+	return list(_payload_to_card(card) for card in deck)
+
+
+def _payload_to_hand(hand: dict) -> dict[UUID, Card]:
+	return {UUID(card_id): _payload_to_card(card) for card_id, card in hand.items()}
+
+
+def _payload_to_card(card: dict) -> Card:
+	return Card(
+		id=UUID(card['id']),
+		rank=Rank(card['rank']),
+		suit=Suit(card['suit']) if card['suit'] is not None else None,
+
+	)
 
 
 def payload_to_game_state(payload: dict) -> GameState:

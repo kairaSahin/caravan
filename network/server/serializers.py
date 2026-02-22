@@ -7,7 +7,10 @@ from game.player.enums import PlayerId
 from game.state.game_state import GameState, GameResult, PlayerState
 
 
-def _game_result_to_payload(result: GameResult) -> dict:
+def _game_result_to_payload(result: GameResult | None) -> dict | None:
+	if result is None:
+		return None
+
 	return {
 		"winner_id": result.winner_id,
 		"end_turn_number": result.end_turn_number,

@@ -13,10 +13,11 @@ from game.state.enums import WinReason
 from game.state.game_state import GameResult, GameState
 
 # noinspection PyProtectedMember
-from network.server.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload
+from network.server.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload, \
+	game_state_to_payload
 # noinspection PyProtectedMember
 from network.server.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
-	_payload_to_players, _payload_to_caravans
+	_payload_to_players, _payload_to_caravans, payload_to_game_state
 from test.functions import create_numeric_card
 
 
@@ -138,3 +139,21 @@ def test_caravans_serialization() -> None:
 	assert deserialized_caravans[CaravanId.P1_B].pile[-1].attachments[-1] == card_2
 
 	assert deserialized_caravans[CaravanId.P1_B].id.owner == PlayerId.P1
+
+
+def test_game_state_serialization() -> None:
+	state = _init_game_state()
+
+	deserialized_game_state = _serialize_deserialize(payload_to_game_state, game_state_to_payload, state)
+
+	# Assert the serialized and deserialized game state stays the same.
+	assert state == deserialized_game_state
+
+	state.game_result = GameResult(winner_id=PlayerId.P2,
+								   reason=WinReason.TWO_CARAVANS,
+								   end_turn_number=state.turn_number)
+
+	deserialized_game_state = _serialize_deserialize(payload_to_game_state, game_state_to_payload, state)
+
+	# Assert the serialized and deserialized game state, with a game result, stays the same.
+	assert state == deserialized_game_state

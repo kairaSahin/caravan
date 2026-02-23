@@ -84,5 +84,12 @@ def _payload_attachments(attachments: list[dict]) -> list[Card]:
 	return list(_payload_to_card(attachment) for attachment in attachments)
 
 
-def payload_to_game_state(payload: dict) -> GameState:
-	return GameState(**payload)
+def payload_to_game_state(payload: dict[str, int | dict | None]) -> GameState:
+	return GameState(
+		players=_payload_to_players(payload['players']),
+		caravans=_payload_to_caravans(payload['caravans']),
+		current_player=_payload_to_current_player(payload['current_player']),
+		turn_number=payload['turn_number'],
+		game_phase=_payload_to_game_phase(payload['game_phase']),
+		game_result=_payload_to_game_result(payload['game_result']),
+	)

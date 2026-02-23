@@ -4,6 +4,8 @@ from game.caravan.caravan import Caravan
 from game.caravan.enums import CaravanId
 from game.cards.card import Card, PlayedCard
 from game.cards.enums import Suit, Rank
+from game.engine.exceptions import IllegalMove
+from game.moves.types import Move, MoveType, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan, Concede
 from game.player.enums import PlayerId
 from game.state.enums import WinReason, GamePhase
 from game.state.game_state import GameState, GameResult, PlayerState
@@ -93,3 +95,58 @@ def payload_to_game_state(payload: dict[str, int | dict | None]) -> GameState:
 		game_phase=_payload_to_game_phase(payload['game_phase']),
 		game_result=_payload_to_game_result(payload['game_result']),
 	)
+
+
+def _payload_to_play_base(payload: dict) -> PlayCard:
+	return PlayCard(
+		player_id=PlayerId(payload['player_id']),
+		card_id=UUID(payload['card_id']),
+		caravan_id=CaravanId(payload['caravan_id']),
+	)
+
+
+def _payload_to_attach_face_card(payload: dict) -> AttachFaceCard:
+	return AttachFaceCard(
+		player_id=PlayerId(payload['player_id']),
+		card_id=UUID(payload['card_id']),
+		caravan_id=CaravanId(payload['caravan_id']),
+		target_base_id=UUID(payload['target_base_id']),
+	)
+
+
+def _payload_to_discard_card(payload: dict) -> DiscardCard:
+	return DiscardCard(
+		player_id=PlayerId(payload['player_id']),
+		card_id=UUID(payload['card_id']),
+	)
+
+
+def _payload_to_discard_caravan(payload: dict) -> DiscardCaravan:
+	return DiscardCaravan(
+		player_id=PlayerId(payload['player_id']),
+		caravan_id=CaravanId(payload['caravan_id']),
+	)
+
+
+def _payload_to_concede(payload: dict) -> Concede:
+	return Concede(
+		player_id=PlayerId(payload['player_id']),
+	)
+
+
+def payload_to_move(payload: dict) -> Move:
+	move_type = MoveType(payload['move_type'])
+
+	if move_type == MoveType.PLAY_BASE:
+		return _payload_to_play_base(payload)
+	elif move_type == MoveType.ATTACH_FACE:
+		return _payload_to_attach_face_card(payload)
+	elif move_type == MoveType.DISCARD_CARD:
+		return _payload_to_discard_card(payload)
+	elif move_type == MoveType.DISCARD_CARAVAN:
+		return _payload_to_discard_caravan(payload)
+	elif move_type == MoveType.CONCEDE:
+		return _payload_to_concede(payload)
+	else:
+		# TODO: Check raised errors later.
+		raise IllegalMove(f"Unsupported move: {move_type}")

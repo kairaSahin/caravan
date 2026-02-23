@@ -1,8 +1,10 @@
 import json
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Tuple
+from uuid import UUID
 
 from game.caravan.enums import CaravanId
 from game.cards.enums import Rank, Suit
+from game.moves.types import Move, PlayCard, AttachFaceCard, DiscardCard, DiscardCaravan, Concede
 from game.player.enums import PlayerId
 from game.setup.deck_builder import build_standard_deck
 from game.setup.game_config import GameConfig
@@ -13,12 +15,12 @@ from game.state.enums import WinReason
 from game.state.game_state import GameResult, GameState
 
 # noinspection PyProtectedMember
-from network.server.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload, \
-	game_state_to_payload
+from network.shared.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload, \
+	game_state_to_payload, move_to_payload
 # noinspection PyProtectedMember
-from network.server.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
-	_payload_to_players, _payload_to_caravans, payload_to_game_state
-from test.functions import create_numeric_card
+from network.shared.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
+	_payload_to_players, _payload_to_caravans, payload_to_game_state, payload_to_move
+from test.functions import create_numeric_card, create_move
 
 
 def _init_game_state() -> GameState:
@@ -33,8 +35,15 @@ def _init_game_state() -> GameState:
 	return init_game(game_config)
 
 
+def _make_move_prereq() -> Tuple[PlayerId, UUID, CaravanId, UUID]:
+	hand_card = create_numeric_card(Rank.EIGHT, Suit.HEARTS)
+	hand_card_2 = create_numeric_card(Rank.KING, Suit.HEARTS)
+
+	return PlayerId.P1, hand_card.id, CaravanId.P1_A, hand_card_2.id
+
+
 _TStateAttributes = TypeVar("_TStateAttributes")
-_TSerializationDeserializationParams = dict | int | None
+_TSerializationDeserializationParams = dict | int | None | Move
 
 
 def _serialize_deserialize(
@@ -157,3 +166,80 @@ def test_game_state_serialization() -> None:
 
 	# Assert the serialized and deserialized game state, with a game result, stays the same.
 	assert state == deserialized_game_state
+
+
+def test_play_base_serialization() -> None:
+	player_id, card_id, caravan_id, _ = _make_move_prereq()
+
+	move = create_move(
+		PlayCard,
+		player_id=player_id,
+		card_id=card_id,
+		caravan_id=caravan_id,
+	)
+
+	deserialized_move = _serialize_deserialize(payload_to_move, move_to_payload, move)
+
+	# Assert that the serialized and deserialized move stays the same.
+	assert move == deserialized_move
+
+
+def test_attach_face_serialization() -> None:
+	player_id, card_id, caravan_id, target_card_id = _make_move_prereq()
+
+	move = create_move(
+		AttachFaceCard,
+		player_id=player_id,
+		card_id=card_id,
+		caravan_id=caravan_id,
+		target_base_id=target_card_id,
+	)
+
+	deserialized_move = _serialize_deserialize(payload_to_move, move_to_payload, move)
+
+	# Assert that the serialized and deserialized move stays the same.
+	assert move == deserialized_move
+
+
+def test_discard_card_serialization() -> None:
+	player_id, card_id, _, _ = _make_move_prereq()
+
+	move = create_move(
+		DiscardCard,
+		player_id=player_id,
+		card_id=card_id,
+	)
+
+	deserialized_move = _serialize_deserialize(payload_to_move, move_to_payload, move)
+
+	# Assert that the serialized and deserialized move stays the same.
+	assert move == deserialized_move
+
+
+def test_discard_caravan_serialization() -> None:
+	player_id, _, caravan_id, _ = _make_move_prereq()
+
+	move = create_move(
+		DiscardCaravan,
+		player_id=player_id,
+		caravan_id=caravan_id,
+	)
+
+	deserialized_move = _serialize_deserialize(payload_to_move, move_to_payload, move)
+
+	# Assert that the serialized and deserialized move stays the same.
+	assert move == deserialized_move
+
+
+def test_concede_serialization() -> None:
+	player_id, _, _, _ = _make_move_prereq()
+
+	move = create_move(
+		Concede,
+		player_id=player_id,
+	)
+
+	deserialized_move = _serialize_deserialize(payload_to_move, move_to_payload, move)
+
+	# Assert that the serialized and deserialized move stays the same.
+	assert move == deserialized_move

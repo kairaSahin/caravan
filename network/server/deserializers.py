@@ -1,6 +1,8 @@
 from uuid import UUID
 
-from game.cards.card import Card
+from game.caravan.caravan import Caravan
+from game.caravan.enums import CaravanId
+from game.cards.card import Card, PlayedCard
 from game.cards.enums import Suit, Rank
 from game.player.enums import PlayerId
 from game.state.enums import WinReason, GamePhase
@@ -53,6 +55,33 @@ def _payload_to_card(card: dict) -> Card:
 		suit=Suit(card['suit']) if card['suit'] is not None else None,
 
 	)
+
+
+def _payload_to_caravans(caravans: dict) -> dict[CaravanId, Caravan]:
+	# We wrap with `int()` here because in this dictionary the CaravanId is stored as a key so it is loaded as a string by `json.loads()`.
+	return {CaravanId(int(caravan_id)): _payload_to_caravan(caravan) for caravan_id, caravan in caravans.items()}
+
+
+def _payload_to_caravan(caravan: dict) -> Caravan:
+	return Caravan(
+		id=CaravanId(caravan['id']),
+		pile=_payload_to_pile(caravan['pile']),
+	)
+
+
+def _payload_to_pile(pile: list) -> list[PlayedCard]:
+	return list(_payload_to_played_card(played_card) for played_card in pile)
+
+
+def _payload_to_played_card(played_card: dict) -> PlayedCard:
+	return PlayedCard(
+		base_card=_payload_to_card(played_card['base_card']),
+		attachments=_payload_attachments(played_card['attachments']),
+	)
+
+
+def _payload_attachments(attachments: list[dict]) -> list[Card]:
+	return list(_payload_to_card(attachment) for attachment in attachments)
 
 
 def payload_to_game_state(payload: dict) -> GameState:

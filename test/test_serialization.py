@@ -1,7 +1,6 @@
 import json
-from typing import Callable
+from typing import Callable, TypeVar
 
-from game.caravan.caravan import Caravan
 from game.caravan.enums import CaravanId
 from game.cards.enums import Rank, Suit
 from game.player.enums import PlayerId
@@ -10,14 +9,14 @@ from game.setup.game_config import GameConfig
 from numpy.random import default_rng
 
 from game.setup.game_initializer import init_game
-from game.state.enums import WinReason, GamePhase
-from game.state.game_state import GameResult, GameState, PlayerState
+from game.state.enums import WinReason
+from game.state.game_state import GameResult, GameState
 
 # noinspection PyProtectedMember
-from network.server.serializers import _game_result_to_payload, _players_to_payload
+from network.server.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload
 # noinspection PyProtectedMember
 from network.server.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
-	_payload_to_players
+	_payload_to_players, _payload_to_caravans
 from test.functions import create_numeric_card
 
 
@@ -33,27 +32,19 @@ def _init_game_state() -> GameState:
 	return init_game(game_config)
 
 
-type _TStateAttributes = PlayerId | GameResult | GamePhase | int | dict[PlayerId, PlayerState] | dict[
-	CaravanId, Caravan]
+_TStateAttributes = TypeVar("_TStateAttributes")
+_TSerializationDeserializationParams = dict | int | None
 
 
 def _serialize_deserialize(
-		deserializer: Callable[[dict | int | None], _TStateAttributes] | None,
-		serializer: Callable[[_TStateAttributes], dict | None] | None,
-		obj: _TStateAttributes) -> _TStateAttributes:
-	if serializer is not None:
-		obj_to_dumps = serializer(obj)
-
-	else:
-		obj_to_dumps = obj
-
+		deserializer: Callable[[_TSerializationDeserializationParams], _TStateAttributes] | None,
+		serializer: Callable[[_TStateAttributes], _TSerializationDeserializationParams] | None,
+		obj: _TStateAttributes,
+) -> _TStateAttributes:
+	obj_to_dumps = serializer(obj) if serializer is not None else obj
 	dumped_loaded_obj = json.loads(json.dumps(obj_to_dumps))
 
-	if deserializer is not None:
-		return deserializer(dumped_loaded_obj)
-
-	else:
-		return dumped_loaded_obj
+	return deserializer(dumped_loaded_obj) if deserializer is not None else dumped_loaded_obj
 
 
 def test_game_result_serialization() -> None:
@@ -114,7 +105,7 @@ def test_players_serialization() -> None:
 
 	deserialized_players = _serialize_deserialize(_payload_to_players, _players_to_payload, state.players)
 
-	# Assert the serialized and deserialized players stays the same.
+	# Assert the serialized and deserialized players stay the same.
 	assert state.players == deserialized_players
 	# Assert a single player stays the same and is fetchable.
 	assert state.players[PlayerId.P1] == deserialized_players[PlayerId.P1]
@@ -124,3 +115,26 @@ def test_players_serialization() -> None:
 	deserialized_players[PlayerId.P1].add_card_to_hand_card(card)
 
 	assert deserialized_players[PlayerId.P1].hand[card.id] == card
+
+
+def test_caravans_serialization() -> None:
+	state = _init_game_state()
+
+	deserialized_caravans = _serialize_deserialize(_payload_to_caravans, _caravans_to_payload, state.caravans)
+
+	# Assert the serialized and deserialized caravans stay the same.
+	assert state.caravans == deserialized_caravans
+	# Assert a single caravan stays the same and is fetchable.
+	assert state.caravans[CaravanId.P1_B] == deserialized_caravans[CaravanId.P1_B]
+	# Assert that functions of CaravanId and Caravan are usable.
+	card = create_numeric_card(Rank.ACE, Suit.HEARTS)
+	deserialized_caravans[CaravanId.P1_B].add_base_card(card)
+
+	assert deserialized_caravans[CaravanId.P1_B].pile[-1].base_card == card
+
+	card_2 = create_numeric_card(Rank.QUEEN, Suit.DIAMONDS)
+	deserialized_caravans[CaravanId.P1_B].attach(card.id, card_2)
+
+	assert deserialized_caravans[CaravanId.P1_B].pile[-1].attachments[-1] == card_2
+
+	assert deserialized_caravans[CaravanId.P1_B].id.owner == PlayerId.P1

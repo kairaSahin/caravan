@@ -1,92 +1,74 @@
 import asyncio
 import os
-import websockets
+import uuid
 
-from websockets.legacy.server import WebSocketServerProtocol
+from dotenv import load_dotenv
+from realtime import BroadcastPayload, RealtimeSubscribeStates
+from supabase import acreate_client
+
 from game.player.enums import PlayerId
 from game.setup.deck_builder import build_standard_deck
 from game.setup.game_config import GameConfig
 from game.setup.game_initializer import init_game
-from game.state.game_state import GameState
 from numpy.random import default_rng
-from dotenv import load_dotenv
-
-from network.server.functions import create_dumped_message
-from network.shared.enums import MessageType, ErrorReason
-from network.shared.serializers import game_state_to_payload
 
 load_dotenv()
 
 
-class GameHost:
-	def __init__(self, state: GameState, host: str, port: int) -> None:
-		self.state = state
-		self.host = host
-		self.port = port
-		self.connections: dict[WebSocketServerProtocol, PlayerId] = {}
-
-	def _assign_player_id(self) -> PlayerId | None:
-		taken = set(self.connections.values())
-
-		if PlayerId.P1 not in taken:
-			return PlayerId.P1
-		if PlayerId.P2 not in taken:
-			return PlayerId.P2
-
-		return None
+class GameHostDBBroadcast:
+	def __init__(self, game_id: str, supabase_url: str, supabase_key: str) -> None:
+		self.game_id = game_id
+		self.supabase_url = supabase_url
+		self.supabase_key = supabase_key
 
 	async def run(self) -> None:
-		async with websockets.serve(
-				handler=self.handler,
-				host=self.host,
-				port=self.port
-		):
-			print(f"Listening on ws://{self.host}:{self.port}")
-			await asyncio.Future()
+		game_config = GameConfig(
+			deck_builder=build_standard_deck,
+			starting_hand_size=8,
+			starting_player=PlayerId.P1,
+			shuffle_decks=True,
+			random_generator=default_rng(),
+		)
 
-	async def handler(self, ws: WebSocketServerProtocol) -> None:
-		print("Client connected")
+		state = init_game(game_config)
 
-		player_id = self._assign_player_id()
+		print("[HOST] initial state created:", state.game_phase)
 
-		if player_id is None:
-			await ws.send(create_dumped_message(MessageType.ERROR, {"reason": ErrorReason.LOBBY_FULL.value}))
-			await ws.close()
-			return
+		supabase = await acreate_client(self.supabase_url, self.supabase_key)
 
-		self.connections[ws] = player_id
+		topic = f"game:{self.game_id}:moves"
+		channel = supabase.channel(topic)
 
-		await ws.send(create_dumped_message(MessageType.WELCOME, {"player_id": player_id.value}))
+		def handle_move_broadcast(payload: BroadcastPayload) -> None:
+			print("[HOST] broadcast received:", payload)
 
-		await ws.send(create_dumped_message(MessageType.STATE, {"state": game_state_to_payload(self.state)}))
+			inner = payload.get("payload")
 
-		try:
-			async for message in ws:
-				print(f"Message received from {player_id}: {message}")
+			if inner:
+				# TODO: Deserialize and run "step()" later
+				print("[HOST] move payload:", inner.get("move"))
 
-		except websockets.ConnectionClosed:
-			print("Connection closed")
+		def on_subscribe(status: RealtimeSubscribeStates, error: Exception | None) -> None:
+			if error:
+				print("[HOST] subscribe error:", error)
+			else:
+				print("[HOST] subscribed status:", status.value)
 
-		finally:
-			del self.connections[ws]
+		await channel.on_broadcast(event="move_inserted", callback=handle_move_broadcast).subscribe(on_subscribe)
+
+		print(f"[HOST] topic: {topic}")
+		await asyncio.Future()
 
 
 async def main() -> None:
-	game_config = GameConfig(
-		deck_builder=build_standard_deck,
-		starting_hand_size=8,
-		starting_player=PlayerId.P1,
-		shuffle_decks=True,
-		random_generator=default_rng()
-	)
+	game_id = str(uuid.uuid4())
+	supabase_url = os.environ["SUPABASE_URL"]
+	supabase_key = os.environ["SUPABASE_KEY"]
 
-	state = init_game(game_config)
-	host = os.environ.get("HOST")
-	port = int(os.environ.get("PORT"))
+	print("[host] GAME_ID:", game_id)
 
-	game_host = GameHost(state=state, host=host, port=port)
-
-	await game_host.run()
+	host = GameHostDBBroadcast(game_id=game_id, supabase_url=supabase_url, supabase_key=supabase_key)
+	await host.run()
 
 
 if __name__ == "__main__":

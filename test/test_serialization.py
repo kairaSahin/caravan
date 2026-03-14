@@ -15,10 +15,10 @@ from game.state.enums import WinReason
 from game.state.game_state import GameResult, GameState
 
 # noinspection PyProtectedMember
-from network.shared.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload, \
+from backend.shared.serializers import _game_result_to_payload, _players_to_payload, _caravans_to_payload, \
 	game_state_to_payload, move_to_payload
 # noinspection PyProtectedMember
-from network.shared.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
+from backend.shared.deserializers import _payload_to_game_result, _payload_to_current_player, _payload_to_game_phase, \
 	_payload_to_players, _payload_to_caravans, payload_to_game_state, payload_to_move
 from test.functions import create_numeric_card, create_move
 

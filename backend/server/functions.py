@@ -1,6 +1,6 @@
 import json
 
-from network.shared.enums import MessageType
+from backend.shared.enums import MessageType
 
 
 def create_dumped_message(msg_type: MessageType, payload: dict) -> str:

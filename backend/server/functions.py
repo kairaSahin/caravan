@@ -1,3 +1,5 @@
+# TODO: Delete this file, probably.
+
 import json
 
 from backend.shared.enums import MessageType

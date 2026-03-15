@@ -1,3 +1,5 @@
+# TODO: Delete this file, probably.
+
 from enum import Enum
 
 

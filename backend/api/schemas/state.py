@@ -26,18 +26,39 @@ class PlayerPayload(BaseModel):
 	hand: dict[str, CardPayload]
 
 
+class OpponentPayload(BaseModel):
+	deck_size: int = Field(ge=0)
+	hand_size: int = Field(ge=0)
+
+
 class GameResultPayload(BaseModel):
 	winner_id: PlayerId
 	end_turn_number: int = Field(ge=0)
 	reason: str
 
 
-class GameStateResponse(BaseModel):
-	game_id: str
-	state_version: int = Field(ge=0)
-	players: dict[PlayerId, PlayerPayload]
+class GameStateBasePayload(BaseModel):
 	caravans: dict[CaravanId, CaravanPayload]
 	current_player: PlayerId
 	turn_number: int = Field(ge=0)
 	game_phase: GamePhase
 	game_result: GameResultPayload | None = None
+
+
+class GameStatePayload(BaseModel, GameStateBasePayload):
+	players: dict[PlayerId, PlayerPayload]
+
+
+class GameStateResponse(BaseModel, GameStatePayload):
+	game_id: str
+	state_version: int = Field(ge=0)
+
+
+class GameStatePlayerExclusivePayload(BaseModel, GameStateBasePayload):
+	player: PlayerPayload
+	opponent: OpponentPayload
+
+
+class GameStatePlayerExclusiveResponse(BaseModel, GameStatePlayerExclusivePayload):
+	game_id: str
+	state_version: int = Field(ge=0)

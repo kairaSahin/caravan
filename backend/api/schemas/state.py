@@ -45,20 +45,20 @@ class GameStateBasePayload(BaseModel):
 	game_result: GameResultPayload | None = None
 
 
-class GameStatePayload(BaseModel, GameStateBasePayload):
+class GameStatePayload(GameStateBasePayload):
 	players: dict[PlayerId, PlayerPayload]
 
 
-class GameStateResponse(BaseModel, GameStatePayload):
+class GameStateResponse(GameStatePayload):
 	game_id: str
 	state_version: int = Field(ge=0)
 
 
-class GameStatePlayerExclusivePayload(BaseModel, GameStateBasePayload):
+class GameStatePlayerExclusivePayload(GameStateBasePayload):
 	player: PlayerPayload
 	opponent: OpponentPayload
 
 
-class GameStatePlayerExclusiveResponse(BaseModel, GameStatePlayerExclusivePayload):
+class GameStatePlayerExclusiveResponse(GameStatePlayerExclusivePayload):
 	game_id: str
 	state_version: int = Field(ge=0)

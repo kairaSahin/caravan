@@ -6,7 +6,7 @@ from game.caravan.enums import CaravanId
 from game.player.enums import PlayerId
 
 
-class MoveType(Enum):
+class MoveType(str, Enum):
 	PLAY_BASE = 'play_base'
 	ATTACH_FACE = 'attach_face'
 	DISCARD_CARD = 'discard_card'

@@ -25,7 +25,8 @@ def get_auth_payload(creds: HTTPAuthorizationCredentials = Depends(bearer)) -> G
 			token=creds.credentials,
 			secret_key=os.environ["JWT_SECRET_KEY"],
 		)
-	# TODO: Maybe catch other exceptions;
+	except jwt_exceptions.ExpiredSignatureError:
+		raise HTTPException(status_code=401, detail="Token expired")
 	except (ValueError, jwt_exceptions.DecodeError, jwt_exceptions.InvalidTokenError):
 		raise HTTPException(status_code=401, detail="Invalid token")
 	except Exception:

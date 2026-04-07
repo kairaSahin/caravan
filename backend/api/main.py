@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from logging import Logger
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -9,7 +8,7 @@ import os
 
 from backend.api.logger.exception_handlers import http_exception_handler_func, unhandled_exception_handler_func
 from backend.api.logger.logging import configure_error_logging
-from backend.api.routes import moves, state
+from backend.api.routes import moves, state, games
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 load_dotenv()
@@ -25,6 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(moves.router)
 app.include_router(state.router)
+app.include_router(games.router)
 
 
 @app.exception_handler(StarletteHTTPException)

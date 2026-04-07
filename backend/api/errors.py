@@ -8,6 +8,7 @@ class ErrorCode(StrEnum):
 	FINISHED_GAME = "FINISHED_GAME"
 	ILLEGAL_MOVE = "ILLEGAL_MOVE"
 	DB_ERROR = "DB_ERROR"
+	SERVER_ERROR = "SERVER_ERROR"
 
 
 class PostgresErrorCode(StrEnum):

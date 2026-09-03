@@ -209,3 +209,4 @@ __marimo__/
 # Specific Files
 test/playground.py
 logs/
+docs/
